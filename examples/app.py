@@ -15,7 +15,8 @@ from flask import redirect
 import json
 import time
 from werkzeug.exceptions import Unauthorized
-from jose import JWTError, jwt
+import jwt
+import six
 
 
 from connexion_sql_utils import BaseMixin, to_json, event_func, dump_method
@@ -45,8 +46,8 @@ DB_HOST = os.environ.get('DB_HOST', 'localhost')
 DB_PORT = os.environ.get('DB_PORT', 5433)
 DB_NAME = os.environ.get('DB_NAME', 'postgres')
 
-DB_URI = 'postgres+psycopg2://{user}:{password}@{host}:{port}/{db}'.format(
-#DB_URI = 'postgres://{user}:{password}@{host}:{port}/{db}'.format(
+#DB_URI = 'postgres+psycopg2://{user}:{password}@{host}:{port}/{db}'.format(
+DB_URI = 'postgres://{user}:{password}@{host}:{port}/{db}'.format(
     user=DB_USER,
     password=DB_PASSWORD,
     host=DB_HOST,
@@ -222,7 +223,9 @@ def generate_token(user_id):
 def decode_token(token):
     try:
         return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-    except JWTError as e:
+    except jwt.exceptions.ExpiredSignatureError as e:
+        six.raise_from(Unauthorized, e)
+    except BaseException as e:
         six.raise_from(Unauthorized, e)
 
 

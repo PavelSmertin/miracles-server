@@ -16,9 +16,10 @@ requirements = [
     'sqlalchemy>=1.3.13',
     'psycopg2>=2.8.4',
     'rauth',
-    'python-jose',
+    'pyjwt',
     'flask-socketio',
     'eventlet',
+    'six'
 ]
 
 test_requirements = [
