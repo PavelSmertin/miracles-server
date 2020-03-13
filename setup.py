@@ -16,7 +16,7 @@ requirements = [
     'sqlalchemy>=1.3.13',
     'psycopg2>=2.8.4',
     'rauth',
-    'python-jose[cryptography]',
+    'python-jose',
     'flask-socketio',
     'eventlet',
 ]
