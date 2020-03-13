@@ -3,6 +3,7 @@ FROM mhoush/psycopg2
 ADD . /app
 
 RUN pip install --upgrade /app  \
+	pip \
     pytest \
     pytest-cov
 
