@@ -1,0 +1,29 @@
+version: '3'
+services:
+  db_miracle:
+    image: postgres:alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgresql_miracles:/var/lib/postgresql/data
+    networks:
+      - miracle-network
+  # api:
+  #   depends_on:
+  #     - db_miracle
+  #   build:
+  #     context: .
+  #   environment:
+  #     DB_HOST: postgres
+  #     DB_PASSWORD: postgres
+  #   links:
+  #     - db_miracle:postgres
+  #   ports:
+  #     - 8080:8080
+  #   networks:
+  #     - miracle-network
+networks:
+    miracle-network:
+        driver: bridge 

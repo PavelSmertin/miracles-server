@@ -1,0 +1,153 @@
+swagger: '2.0'
+info:
+  title: Miracles api
+  version: '0.1'
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths:
+  /user:
+    get:
+      tags: [User]
+      operationId: app.get_user
+      summary: Get all the user
+      parameters:
+        - name: limit
+          in: query
+          type: integer
+          minimum: 0
+          default: 100
+        - name: email
+          in: query
+          type: string
+      responses:
+        200:
+          description: Return the user's
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+      security:
+      - jwt: []
+    post:
+      tags: [User]
+      operationId: app.post_user
+      summary: Create a new user.
+      parameters:
+        - name: user
+          in: body
+          schema:
+            $ref: '#/definitions/User'
+      responses:
+        201:
+          description: User created
+          schema:
+            $ref: '#/definitions/User'
+        400:
+          description: Failed to save user
+  /user/{user_id}:
+    get:
+      tags: [User]
+      operationId: app.get_user_id
+      summary: Get a single user
+      parameters:
+        - $ref: '#/parameters/user_id'
+      responses:
+        200:
+          description: Return the user
+          schema:
+            $ref: '#/definitions/User'
+        404:
+          description: User does not exist
+    put:
+      tags: [User]
+      operationId: app.put_user
+      summary: Update a user
+      parameters:
+        - $ref: '#/parameters/user_id'
+        - name: user_data
+          in: body
+          schema:
+            $ref: '#/definitions/User'
+      responses:
+        200:
+          description: Updated user
+          schema:
+            $ref: '#/definitions/User'
+        400:
+          description: Failed due to invalid data
+        404:
+          description: User does not exist
+    delete:
+      tags: [User]
+      operationId: app.delete_user
+      summary: Delete a user
+      parameters:
+        - $ref: '#/parameters/user_id'
+      responses:
+        204:
+          description: User was deleted
+        404:
+          description: User does not exist
+  /login_facebook:
+    get:
+      summary: facebook oauth
+      operationId: app.authorize
+      responses:
+        302:
+          description: OK
+  /oauth2-redirect.html:
+    get:
+      summary: Return secret string
+      operationId: app.callback
+      parameters:
+        - name: "code"
+          in: "query"
+          description: "fb code"
+          required: false
+          type: "string"
+      responses:
+        200:
+          description: secret response
+parameters:
+  user_id:
+    name: user_id
+    description: User's unique identifier
+    type: string
+    in: path
+    required: true
+    pattern: "^[a-zA-Z0-9-]+$"
+securityDefinitions:
+  jwt:
+    type: apiKey
+    name: Bearer
+    in: header
+    x-bearerInfoFunc: app.decode_token
+definitions:
+  User:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: The name attribute
+        maxLength: 40
+        example: 'Nickname'
+      email:
+        type: string
+        description: The email attribute
+        maxLength: 80
+        example: 'user@user.com'
+      avatar:
+        type: string
+        description: The avatar attribute
+        maxLength: 512
+        example: 'site.com/user_logo.jpg'
+      karma:
+        type: number
+        description: The karma of user
+        minimum: 1
+        example: 10

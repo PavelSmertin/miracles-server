@@ -1,0 +1,208 @@
+openapi: 3.0.1
+info:
+  title: Miracles api
+  version: "0.1"
+servers:
+- url: /
+paths:
+  /user:
+    get:
+      tags:
+      - User
+      summary: Get all the user
+      operationId: app.get_user
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          minimum: 0
+          type: integer
+          default: 100
+      - name: email
+        in: query
+        schema:
+          type: string
+      responses:
+        200:
+          description: Return the user's
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+      security:
+      - jwt: []
+    post:
+      tags:
+      - User
+      summary: Create a new user.
+      operationId: app.post_user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: false
+      responses:
+        201:
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          description: Failed to save user
+          content: {}
+      x-codegen-request-body-name: user
+  /user/{user_id}:
+    get:
+      tags:
+      - User
+      summary: Get a single user
+      operationId: app.get_user_id
+      parameters:
+      - name: user_id
+        in: path
+        description: User's unique identifier
+        required: true
+        schema:
+          pattern: ^[a-zA-Z0-9-]+$
+          type: string
+      responses:
+        200:
+          description: Return the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        404:
+          description: User does not exist
+          content: {}
+    put:
+      tags:
+      - User
+      summary: Update a user
+      operationId: app.put_user
+      parameters:
+      - name: user_id
+        in: path
+        description: User's unique identifier
+        required: true
+        schema:
+          pattern: ^[a-zA-Z0-9-]+$
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: false
+      responses:
+        200:
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          description: Failed due to invalid data
+          content: {}
+        404:
+          description: User does not exist
+          content: {}
+      x-codegen-request-body-name: user_data
+    delete:
+      tags:
+      - User
+      summary: Delete a user
+      operationId: app.delete_user
+      parameters:
+      - name: user_id
+        in: path
+        description: User's unique identifier
+        required: true
+        schema:
+          pattern: ^[a-zA-Z0-9-]+$
+          type: string
+      responses:
+        204:
+          description: User was deleted
+          content: {}
+        404:
+          description: User does not exist
+          content: {}
+  /login_facebook:
+    get:
+      summary: facebook oauth
+      operationId: app.authorize
+      responses:
+        302:
+          description: OK
+          content: {}
+  /oauth2-redirect.html:
+    get:
+      summary: Return secret string
+      operationId: app.callback
+      parameters:
+      - name: code
+        in: query
+        description: fb code
+        schema:
+          type: string
+      responses:
+        200:
+          description: secret response
+          content: {}
+components:
+  schemas:
+    User:
+      required:
+      - name
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+          example: 44a288c1-829c-410d-9a6e-1fce1beb62d4
+          readOnly: true
+        name:
+          maxLength: 40
+          type: string
+          description: The name attribute
+          example: Nickname
+        name:
+          maxLength: 40
+          type: string
+          description: The name attribute
+          example: Nickname
+        email:
+          maxLength: 80
+          type: string
+          description: The email attribute
+          example: user@user.com
+        avatar:
+          maxLength: 512
+          type: string
+          description: The avatar attribute
+          example: site.com/user_logo.jpg
+        karma:
+          minimum: 1
+          type: number
+          description: The karma of user
+          example: 10.0
+  parameters:
+    user_id:
+      name: user_id
+      in: path
+      description: User's unique identifier
+      required: true
+      schema:
+        pattern: ^[a-zA-Z0-9-]+$
+        type: string
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      x-bearerInfoFunc: app.decode_token
