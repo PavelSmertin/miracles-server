@@ -177,7 +177,8 @@ def callback(code):
     if(user_id is None): 
         return redirect('foobar://success')
 
-    auth_token = generate_token(user_id)
+    auth_token = generate_token(user_id).decode("utf-8")
+    
     crud.put(User, id=user_id, user={
         'avatar': picture_url, 
         'facebook_authorization_code': code,
