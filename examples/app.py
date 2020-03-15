@@ -126,7 +126,7 @@ client_secret='56ca69b06b90f5692eaf8f1aeb41f9ac'
 authorize_url = 'https://www.facebook.com/v6.0/dialog/oauth'
 access_token_url = 'https://graph.facebook.com/v6.0/oauth/access_token'
 
-redirect_uri='https://5d38bafc.ngrok.io/oauth2-redirect.html'
+redirect_uri='https://api.miracles.club/oauth2-redirect.html'
 request_uri ='https://www.facebook.com/dialog/oauth?response_type=code&client_id={client_id}&redirect_uri={redirect_uri}&state={state}&scope={scopes}'.format(
             client_id=client_id, 
             redirect_uri=redirect_uri, 
