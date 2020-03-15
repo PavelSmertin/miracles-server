@@ -5,11 +5,9 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
     ports:
-      - 5433:5432
+      - 54320:5432
     volumes:
       - ./postgresql_miracles:/var/lib/postgresql/data
-    networks:
-      - miracle-network
   api:
     depends_on:
       - db_miracle
@@ -22,8 +20,3 @@ services:
       - db_miracle:postgres
     ports:
       - 8080:8080
-    networks:
-      - miracle-network
-networks:
-    miracle-network:
-        driver: bridge 

@@ -46,11 +46,12 @@ DB_HOST = os.environ.get('DB_HOST', 'localhost')
 DB_PORT = os.environ.get('DB_PORT', 5432)
 DB_NAME = os.environ.get('DB_NAME', 'postgres')
 
-DB_URI = 'postgres+psycopg2://{user}:{password}@{host}/{db}'.format(
-#DB_URI = 'postgres://{user}:{password}@{host}:{port}/{db}'.format(
+#DB_URI = 'postgres+psycopg2://{user}:{password}@{host}:{port}/{db}'.format(
+DB_URI = 'postgres://{user}:{password}@{host}:{port}/{db}'.format(
     user=DB_USER,
     password=DB_PASSWORD,
     host=DB_HOST,
+    port=DB_PORT,
     db=DB_NAME
 )
 
@@ -317,7 +318,7 @@ def test_disconnect():
 if __name__ == '__main__':
     port = os.environ.get('APP_PORT', 8080)
     DbModel.metadata.create_all(bind=engine)
-    socketio.run(flask_app, debug=True, port=int(port))
+    socketio.run(flask_app, host='0.0.0.0',  debug=True, port=int(port))
 
 
 
