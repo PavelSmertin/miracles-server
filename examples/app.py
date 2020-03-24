@@ -178,7 +178,7 @@ def callback(code):
         return redirect('foobar://success')
 
     auth_token = generate_token(user_id).decode("utf-8")
-    
+
     crud.put(User, id=user_id, user={
         'avatar': picture_url, 
         'facebook_authorization_code': code,
@@ -296,6 +296,12 @@ def tap_up(x, y):
     jwt = decode_token(request.args.get('auth'))
     user_id = jwt.get('sub')
     emit('broadcast', {'data': {'user_id': user_id, 'position':{'x': x, 'y': y}}}, broadcast=True)
+
+@socketio.on('spin')
+def spin(corner, velocity):
+    jwt = decode_token(request.args.get('auth'))
+    user_id = jwt.get('sub')
+    emit('spincast', {'data': {'user_id': user_id, 'position':{'corner': x, 'velocity': y}}}, broadcast=True)
 
 @socketio.on('tap_down')
 def tap_down(x, y):
