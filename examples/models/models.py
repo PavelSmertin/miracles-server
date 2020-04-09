@@ -1,5 +1,5 @@
 
-from sqlalchemy import Column, ForeignKey, String, Integer, Numeric, DateTime
+from sqlalchemy import Table, Column, ForeignKey, String, Integer, Numeric, DateTime
 from sqlalchemy.orm import relationship
 from connexion_sql_utils import to_json, event_func, dump_method
 from models import DbModel, DbModelClear
