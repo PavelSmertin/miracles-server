@@ -41,20 +41,20 @@ class BaseMixin(object):
     """
     dump_dict = False
 
-    id = Column(UUID(), primary_key=True)
+    # id = Column(UUID(), primary_key=True)
 
-    @declared_attr
-    def __tablename__(cls):
-        return cls.__name__.lower()
+    # @declared_attr
+    # def __tablename__(cls):
+    #     return cls.__name__.lower()
 
-    @staticmethod
-    @event_func('before_insert')
-    def create_id(mapper, connection, target):
-        """Automatically creates a ``UUID`` before inserting a new
-        item.
+    # @staticmethod
+    # @event_func('before_insert')
+    # def create_id(mapper, connection, target):
+    #     """Automatically creates a ``UUID`` before inserting a new
+    #     item.
 
-        """
-        target.id = str(uuid.uuid4())
+    #     """
+    #     target.id = str(uuid.uuid4())
 
     @classmethod
     def __declare_last__(cls):  # pragma: no cover

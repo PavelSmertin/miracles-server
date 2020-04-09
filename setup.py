@@ -15,6 +15,7 @@ requirements = [
     'connexion==2.6.0',
     'sqlalchemy>=1.3.13',
     'psycopg2>=2.8.4',
+    'alembic==1.4.2',
     'rauth',
     'pyjwt',
     'flask-socketio',
