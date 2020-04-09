@@ -22,7 +22,7 @@ from flask_socketio import SocketIO, emit
 from flask import request
 
 
-from models import ModelBase, DbModel, DbModelClear, engine, User, Post, Tag, Visits, Socials
+from models import ModelBase, DbModel, DbModelClear, engine, User, Message, Tag, Visits, Socials
 
 
 logger = logging.getLogger(__name__)
@@ -38,14 +38,17 @@ JWT_ALGORITHM = 'HS256'
 
 
     
-# CRUD methods used in ``opertionId`` field of ``swagger.yml``
-# connexion needs named parameters in it's operitionId field, so you must
-# declare them in the partial in order to work correctly.
-# get_user = partial(crud.get, User, limit=None, email=None)
-post_user = partial(crud.post, User, user=None)
+
 get_user_id = partial(crud.get_id, User, user_id=None)
 put_user = partial(crud.put, User, user_id=None, user_data=None)
-delete_user = partial(crud.delete, User, user_id=None)
+
+get_messages = partial(crud.get, Message, limit=None, content=None)
+post_message = partial(crud.post, Message, message=None)
+get_message_id = partial(crud.get_id, Message, message_id=None)
+put_message = partial(crud.put, User, message_id=None, message_data=None)
+delete_message = partial(crud.delete, User, message_id=None)
+
+get_tags = partial(crud.get, Tag, limit=None, name=None)
 
 
 client_id='187087565689839'
@@ -72,6 +75,13 @@ facebook = OAuth2Service(
 def get_user(user, token_info):
     users = crud.get(User, limit=100)
     return list(filter(lambda u: u.get('id') == user, users)) + list(filter(lambda u: u.get('id') != user, users))
+
+def create_message(user, token_info, message):
+    result = Message(
+            uid = user, 
+            content = message.content
+            )
+    return crud.post(Message, result)
 
 def authorize():
     return redirect(request_uri)
@@ -155,8 +165,8 @@ def decode_token(token):
     except BaseException as e:
         six.raise_from(Unauthorized, e)
 
-
-
+def _current_timestamp() -> int:
+    return int(time.time())
 
 # @socketio.on('create')
 # def on_create(data):
@@ -195,8 +205,7 @@ def decode_token(token):
 
 
 
-def _current_timestamp() -> int:
-    return int(time.time())
+
 
 
 

@@ -1,11 +1,11 @@
 from .model_base import ModelBase, DbModel, DbModelClear, engine
 from .models import Visits, Socials
-from .models import User, Post, Tag
+from .models import User, Message, Tag
 
 __all__ = [
     'ModelBase',
     'User',
-    'Post',
+    'Message',
     'Tag',
     'Visits',
     'Socials',

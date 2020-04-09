@@ -1,18 +1,17 @@
 
-from sqlalchemy import Column, ForeignKey, String, Numeric, DateTime
+from sqlalchemy import Column, ForeignKey, String, Integer, Numeric, DateTime
 from sqlalchemy.orm import relationship
 from connexion_sql_utils import to_json, event_func, dump_method
 from models import DbModel, DbModelClear
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY
 from datetime import datetime
-import uuid
 
 
 class User(DbModel):
 
     __tablename__ = 'users'
 
-    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
+    id = Column(Integer, primary_key=True)
 
     name                            = Column(String(40), nullable=False)
     email                           = Column(String(80), unique=True)
@@ -41,35 +40,35 @@ class User(DbModel):
             return float(val)
         return val
 
-class Post(DbModel):
-    __tablename__ = 'posts'
-    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
-    uid = Column(UUID())
-    message = Column(String(512), nullable=True)
+class Message(DbModel):
+    __tablename__ = 'messages'
+    id = Column(Integer, primary_key=True)
+    uid = Column(Integer)
+    content = Column(String(360), nullable=True)
     temp = Column(Numeric, nullable=True)
-    visitors = Column(ARRAY(UUID()))
-    tags = relationship('tags', secondary = 'posttag')
+    visitors = Column(ARRAY(Integer))
+    tags = relationship('tags', secondary = 'messagetag')
 
 class Tag(DbModel):
     __tablename__ = 'tags'
-    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
+    id = Column(Integer, primary_key=True)
     name = Column(String(128), nullable=True)
-    posts = relationship('posts', secondary = 'posttag')
+    messages = relationship('messages', secondary = 'messagetag')
 
 
-class PostTag(DbModel):
-    __tablename__ = 'posttag'
-    post_id = Column(UUID(), ForeignKey('posts.id'), primary_key=True)
-    tag_id = Column(UUID(), ForeignKey('tags.id'), primary_key=True)
+class MessageTag(DbModel):
+    __tablename__ = 'messagetag'
+    message_id = Column(Integer, ForeignKey('messages.id'), primary_key=True)
+    tag_id = Column(Integer, ForeignKey('tags.id'), primary_key=True)
 
 class Visits(DbModel):
     __tablename__ = 'visits'
-    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
-    post_id = Column(UUID(), index=True)
-    uid = Column(UUID(), index=True)
+    id = Column(Integer, primary_key=True)
+    message_id = Column(Integer, index=True)
+    uid = Column(Integer, index=True)
     tms = Column(DateTime, index=True, default=datetime.utcnow)
 
 class Socials(DbModel):
     __tablename__ = 'socials'
-    uid1 = Column(UUID(), primary_key=True)
-    uid2 = Column(UUID(), primary_key=True)
+    uid1 = Column(Integer, primary_key=True)
+    uid2 = Column(Integer, primary_key=True)

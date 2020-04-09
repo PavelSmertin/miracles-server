@@ -5,56 +5,6 @@ info:
 servers:
 - url: /
 paths:
-  /user:
-    get:
-      tags:
-      - User
-      summary: Get all the user
-      operationId: app.get_user
-      parameters:
-      - name: limit
-        in: query
-        schema:
-          minimum: 0
-          type: integer
-          default: 100
-      - name: email
-        in: query
-        schema:
-          type: string
-      responses:
-        200:
-          description: Return the user's
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
-      security:
-      - jwt: []
-    post:
-      tags:
-      - User
-      summary: Create a new user.
-      operationId: app.post_user
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-        required: false
-      responses:
-        201:
-          description: User created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        400:
-          description: Failed to save user
-          content: {}
-      x-codegen-request-body-name: user
   /user/{user_id}:
     get:
       tags:
@@ -79,6 +29,8 @@ paths:
         404:
           description: User does not exist
           content: {}
+      security:
+      - jwt: []
     put:
       tags:
       - User
@@ -112,26 +64,174 @@ paths:
           description: User does not exist
           content: {}
       x-codegen-request-body-name: user_data
+      security:
+      - jwt: []
+
+  /message:
+    get:
+      tags:
+      - message
+      summary: Get all the messages
+      operationId: app.get_messages
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          minimum: 0
+          type: integer
+          default: 100
+      - name: content
+        in: query
+        schema:
+          type: string
+      responses:
+        200:
+          description: Return the messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+      security:
+      - jwt: []
+    post:
+      tags:
+      - Message
+      summary: Create a new message.
+      operationId: app.create_message
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+        required: false
+      responses:
+        201:
+          description: Message created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        400:
+          description: Failed to save message
+          content: {}
+      x-codegen-request-body-name: message
+      security:
+      - jwt: []
+  /message/{message_id}:
+    get:
+      tags:
+      - Message
+      summary: Get a single message
+      operationId: app.get_message_id
+      parameters:
+      - name: message_id
+        in: path
+        description: message's unique identifier
+        required: true
+        schema:
+          pattern: ^[a-zA-Z0-9-]+$
+          type: string
+      responses:
+        200:
+          description: Return the message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        404:
+          description: Message does not exist
+          content: {}
+      security:
+      - jwt: []
+    put:
+      tags:
+      - Message
+      summary: Update a message
+      operationId: app.put_message
+      parameters:
+      - name: message_id
+        in: path
+        description: message's unique identifier
+        required: true
+        schema:
+          pattern: ^[a-zA-Z0-9-]+$
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+        required: false
+      responses:
+        200:
+          description: Updated message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        400:
+          description: Failed due to invalid data
+          content: {}
+        404:
+          description: Message does not exist
+          content: {}
+      x-codegen-request-body-name: message_data
+      security:
+      - jwt: []
     delete:
       tags:
-      - User
-      summary: Delete a user
-      operationId: app.delete_user
+      - Message
+      summary: Delete a message
+      operationId: app.delete_message
       parameters:
-      - name: user_id
+      - name: message_id
         in: path
-        description: User's unique identifier
+        description: message's unique identifier
         required: true
         schema:
           pattern: ^[a-zA-Z0-9-]+$
           type: string
       responses:
         204:
-          description: User was deleted
+          description: message was deleted
           content: {}
         404:
-          description: User does not exist
+          description: message does not exist
           content: {}
+      security:
+      - jwt: []
+
+  /tag:
+    get:
+      tags:
+      - Tag
+      summary: Get all the tags
+      operationId: app.get_tags
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          minimum: 0
+          type: integer
+          default: 100
+      - name: name
+        in: query
+        schema:
+          type: string
+      responses:
+        200:
+          description: Return the tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+      security:
+      - jwt: []
+
   /login_facebook:
     get:
       summary: facebook oauth
@@ -162,9 +262,9 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: integer
           description: Unique identifier
-          example: 44a288c1-829c-410d-9a6e-1fce1beb62d4
+          example: 1
           readOnly: true
         name:
           maxLength: 40
@@ -191,6 +291,39 @@ components:
           type: number
           description: The karma of user
           example: 10.0
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier
+          example: 1
+          readOnly: true
+        content:
+          maxLength: 360
+          type: string
+          description: The content attribute
+          example: Morning meditation
+        temp:
+          minimum: 0
+          type: number
+          description: The temp of breath
+          example: 10.0
+    Tag:
+      required:
+      - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier
+          example: 1
+          readOnly: true
+        name:
+          maxLength: 128
+          type: string
+          description: The name attribute
+          example: Nickname
   parameters:
     user_id:
       name: user_id
@@ -198,8 +331,21 @@ components:
       description: User's unique identifier
       required: true
       schema:
-        pattern: ^[a-zA-Z0-9-]+$
-        type: string
+        type: integer
+    message_id:
+      name: message_id
+      in: path
+      description: Message's unique identifier
+      required: true
+      schema:
+        type: integer
+    tag_id:
+      name: tag_id
+      in: path
+      description: Tag's unique identifier
+      required: true
+      schema:
+        type: integer
   securitySchemes:
     jwt:
       type: http
