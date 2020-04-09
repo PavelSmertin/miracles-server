@@ -5,6 +5,34 @@ info:
 servers:
 - url: /
 paths:
+  /user:
+    get:
+      tags:
+      - User
+      summary: Get all the users
+      operationId: app.get_user
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          minimum: 0
+          type: integer
+          default: 100
+      - name: email
+        in: query
+        schema:
+          type: string
+      responses:
+        200:
+          description: Return the users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+      security:
+      - jwt: []
   /user/{user_id}:
     get:
       tags:
