@@ -54,13 +54,13 @@ class Message(DbModel):
     content = Column(String(360), nullable=True)
     temp = Column(Numeric, nullable=True)
     visitors = Column(ARRAY(Integer))
-    tags = relationship('tags', secondary = message_tag, back_populates="messages")
+    #tags = relationship('tags', secondary = message_tag, back_populates="messages")
 
 class Tag(DbModel):
     __tablename__ = 'tags'
     id = Column(Integer, primary_key=True)
     name = Column(String(128), nullable=True)
-    messages = relationship('messages', secondary = message_tag, back_populates="tags")
+    #messages = relationship('messages', secondary = message_tag, back_populates="tags")
 
 
 
