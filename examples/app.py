@@ -254,7 +254,7 @@ def test_disconnect():
 
 if __name__ == '__main__':
     port = os.environ.get('APP_PORT', 8080)
-    DbModel.metadata.drop_all(bind=engine)
+    # DbModel.metadata.drop_all(bind=engine)
     DbModel.metadata.create_all(bind=engine)
     socketio.run(flask_app, host='0.0.0.0',  debug=True, port=int(port))
 
