@@ -6,6 +6,8 @@ from models import DbModel, DbModelClear
 from sqlalchemy.dialects.postgresql import ARRAY
 from datetime import datetime
 
+import logging
+
 
 class User(DbModel):
 
