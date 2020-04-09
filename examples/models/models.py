@@ -40,6 +40,13 @@ class User(DbModel):
             return float(val)
         return val
 
+
+message_tag = Table('messagetag', DbModel.metadata,
+    Column('message_id', Integer, ForeignKey('messages.id')),
+    Column('tag_id', Integer, ForeignKey('tags.id'))
+)
+
+
 class Message(DbModel):
     __tablename__ = 'messages'
     id = Column(Integer, primary_key=True)
@@ -47,19 +54,20 @@ class Message(DbModel):
     content = Column(String(360), nullable=True)
     temp = Column(Numeric, nullable=True)
     visitors = Column(ARRAY(Integer))
-    tags = relationship('tags', secondary = 'messagetag')
+    tags = relationship('tags', secondary = message_tag, back_populates="messages")
 
 class Tag(DbModel):
     __tablename__ = 'tags'
     id = Column(Integer, primary_key=True)
     name = Column(String(128), nullable=True)
-    messages = relationship('messages', secondary = 'messagetag')
+    messages = relationship('messages', secondary = message_tag, back_populates="tags")
 
 
-class MessageTag(DbModel):
-    __tablename__ = 'messagetag'
-    message_id = Column(Integer, ForeignKey('messages.id'), primary_key=True)
-    tag_id = Column(Integer, ForeignKey('tags.id'), primary_key=True)
+
+# class MessageTag(DbModel):
+#     __tablename__ = 'messagetag'
+#     message_id = Column(Integer, ForeignKey('messages.id'), primary_key=True)
+#     tag_id = Column(Integer, ForeignKey('tags.id'), primary_key=True)
 
 class Visits(DbModel):
     __tablename__ = 'visits'
