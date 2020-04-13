@@ -76,12 +76,13 @@ def get_user(user, token_info):
     users = crud.get(User, limit=100)
     return list(filter(lambda u: u.get('id') == user, users)) + list(filter(lambda u: u.get('id') != user, users))
 
-def create_message(user, token_info, message):
+def create_message(user, token_info):
+    request = connexion.request.get_json()
     result = Message(
             uid = user, 
-            content = message.content
+            content = "test"
             )
-    return crud.post(Message, result)
+    return crud.post(Message, message={'content': request.get('content'), 'uid': user})
 
 def authorize():
     return redirect(request_uri)
