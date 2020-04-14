@@ -42,11 +42,11 @@ JWT_ALGORITHM = 'HS256'
 get_user_id = partial(crud.get_id, User, user_id=None)
 put_user = partial(crud.put, User, user_id=None, user_data=None)
 
-get_messages = partial(crud.get, Message, limit=None, content=None)
+get_messages = partial(crud.get, Message, limit=None)
 post_message = partial(crud.post, Message, message=None)
 get_message_id = partial(crud.get_id, Message, message_id=None)
-put_message = partial(crud.put, User, message_id=None, message_data=None)
-delete_message = partial(crud.delete, User, message_id=None)
+put_message = partial(crud.put, Message, message_id=None, message_data=None)
+delete_message = partial(crud.delete, Message, message_id=None)
 
 get_tags = partial(crud.get, Tag, limit=None, name=None)
 
@@ -75,6 +75,9 @@ facebook = OAuth2Service(
 def get_user(user, token_info):
     users = crud.get(User, limit=100)
     return list(filter(lambda u: u.get('id') == user, users)) + list(filter(lambda u: u.get('id') != user, users))
+
+def cget_messages(user, token_info):
+    return crud.get(Message, limit=100)
 
 def create_message(user, token_info):
     request = connexion.request.get_json()

@@ -100,7 +100,7 @@ paths:
       tags:
       - message
       summary: Get all the messages
-      operationId: app.get_messages
+      operationId: app.cget_messages
       parameters:
       - name: limit
         in: query
@@ -108,10 +108,6 @@ paths:
           minimum: 0
           type: integer
           default: 100
-      - name: content
-        in: query
-        schema:
-          type: string
       responses:
         200:
           description: Return the messages
