@@ -14,6 +14,7 @@ requirements = [
     'connexion[swagger-ui]',
     'connexion==2.6.0',
     'sqlalchemy>=1.3.13',
+    'SQLAlchemy-serializer',
     'psycopg2>=2.8.4',
     'alembic==1.4.2',
     'rauth',

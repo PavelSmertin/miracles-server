@@ -21,8 +21,9 @@ from flask import Flask, render_template, redirect
 from flask_socketio import SocketIO, emit
 from flask import request
 
-
-from models import ModelBase, DbModel, DbModelClear, engine, User, Message, Tag, Visits, Socials
+from sqlalchemy import Column, Date, Integer, Text, create_engine, inspect
+from sqlalchemy.orm import joinedload
+from models import ModelBase, Session, DbModel, DbModelClear, engine, User, Message, Tag, Visits, Socials
 
 
 logger = logging.getLogger(__name__)
@@ -36,8 +37,6 @@ JWT_SECRET = '8F@%P51xGy'
 JWT_LIFETIME_SECONDS = 3600 * 24 * 365
 JWT_ALGORITHM = 'HS256'
 
-
-    
 
 get_user_id = partial(crud.get_id, User, user_id=None)
 put_user = partial(crud.put, User, user_id=None, user_data=None)
@@ -72,12 +71,26 @@ facebook = OAuth2Service(
     base_url='https://graph.facebook.com/')
 
 
+
+def object_as_dict(obj):
+    return {c.key: getattr(obj, c.key)
+            for c in inspect(obj).mapper.column_attrs}
+
+
 def get_user(user, token_info):
     users = crud.get(User, limit=100)
     return list(filter(lambda u: u.get('id') == user, users)) + list(filter(lambda u: u.get('id') != user, users))
 
-def cget_messages(user, token_info):
-    return crud.get(Message, limit=100)
+def cget_messages(user, token_info):  
+    #return Session.query(Message).options(joinedload('user')).all().to_dict()
+
+    messages = []
+    for u in Session.query(Message).options(joinedload('user')).all():
+        messages.append(u.to_dict())
+
+    return messages
+
+    #return crud.get(Message, limit=100)
 
 def create_message(user, token_info):
     request = connexion.request.get_json()
@@ -258,7 +271,7 @@ def test_disconnect():
 
 if __name__ == '__main__':
     port = os.environ.get('APP_PORT', 8080)
-    DbModel.metadata.drop_all(bind=engine)
+    #DbModel.metadata.drop_all(bind=engine)
     DbModel.metadata.create_all(bind=engine)
     socketio.run(flask_app, host='0.0.0.0',  debug=True, port=int(port))
 
