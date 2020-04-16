@@ -21,6 +21,8 @@ from flask import Flask, render_template, redirect
 from flask_socketio import SocketIO, emit
 from flask import request
 
+
+from connexion import NoContent
 from sqlalchemy import Column, Date, Integer, Text, create_engine, inspect
 from sqlalchemy.orm import joinedload
 from models import ModelBase, Session, DbModel, DbModelClear, engine, User, Message, Tag, Visits, Socials
@@ -94,11 +96,18 @@ def cget_messages(user, token_info):
 
 def create_message(user, token_info):
     request = connexion.request.get_json()
-    result = Message(
-            uid = user, 
-            content = "test"
-            )
-    return crud.post(Message, message={'content': request.get('content'), 'uid': user})
+
+    instance = Message(content=request.get('content'), uid =user)
+    try:
+        Session.add(instance)
+        Session.commit()
+        return instance.to_dict(), 201
+    except Exception as err:
+        print(err)
+        logging.debug('Exception:post_id:{}'.format(err))
+    return NoContent, 400
+
+    #return crud.post(Message, message={'content': request.get('content'), 'uid': user})
 
 def authorize():
     return redirect(request_uri)
