@@ -24,7 +24,7 @@ class User(DbModel, SerializerMixin):
     facebook_authorization_code     = Column(String(512))
     facebook_access_token           = Column(String(512))
     auth_token                      = Column(String(512))
-    karma                           = Column(Numeric, nullable=True)
+    #karma                           = Column(Numeric, nullable=True)
 
     @dump_method
     def remove_meta(self, vals):
