@@ -88,7 +88,7 @@ def get_user(user, token_info):
 
 def cget_messages(user, token_info):  
 
-    last_mesasges = Session.query(Message.uid, Message.id, func.max(Message.tms).label('last_tms')).group_by(Message.uid, Message.id).subquery()
+    last_mesasges = Session.query(Message.uid, func.max(Message.id).label('id'), func.max(Message.tms).label('last_tms')).group_by(Message.uid).subquery()
     query = Session.query(last_mesasges.c.id, last_mesasges.c.uid, User, Message).\
         join(User, last_mesasges.c.uid == User.id).\
         join(Message, last_mesasges.c.id == Message.id).\
