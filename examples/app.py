@@ -25,6 +25,8 @@ from flask import request
 from connexion import NoContent
 from sqlalchemy import Column, Date, Integer, Text, create_engine, inspect
 from sqlalchemy.orm import joinedload
+from sqlalchemy.sql import func
+from datetime import datetime
 from models import ModelBase, Session, DbModel, DbModelClear, engine, User, Message, Tag, Visits, Socials
 
 
@@ -74,9 +76,10 @@ facebook = OAuth2Service(
 
 
 
-def object_as_dict(obj):
-    return {c.key: getattr(obj, c.key)
-            for c in inspect(obj).mapper.column_attrs}
+
+def myconverter(o):
+    if isinstance(o, datetime):
+        return o.__str__()
 
 
 def get_user(user, token_info):
@@ -84,15 +87,26 @@ def get_user(user, token_info):
     return list(filter(lambda u: u.get('id') == user, users)) + list(filter(lambda u: u.get('id') != user, users))
 
 def cget_messages(user, token_info):  
-    #return Session.query(Message).options(joinedload('user')).all().to_dict()
 
-    messages = []
-    for u in Session.query(Message).options(joinedload('user')).all():
-        messages.append(u.to_dict())
+    last_mesasges = Session.query(Message.uid, Message.id, func.max(Message.tms).label('last_tms')).group_by(Message.uid, Message.id).subquery()
+    query = Session.query(last_mesasges.c.id, last_mesasges.c.uid, User, Message).\
+        join(User, last_mesasges.c.uid == User.id).\
+        join(Message, last_mesasges.c.id == Message.id).\
+        order_by(last_mesasges.c.last_tms)
 
-    return messages
+    items = []
 
-    #return crud.get(Message, limit=100)
+    for u in query:
+        items.append({
+            'user_id': u.User.id,
+            'message_id': u.Message.id, 
+            'user_name': u.User.name,
+            'avatar': u.User.avatar,
+            'content': u.Message.content,
+            'tms': u.Message.tms,
+        })
+
+    return items
 
 def create_message(user, token_info):
     request = connexion.request.get_json()
