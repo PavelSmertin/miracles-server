@@ -61,8 +61,7 @@ class Message(DbModel, SerializerMixin):
     tms = Column(DateTime, index=True, default=datetime.utcnow)
 
     user = relationship("User", foreign_keys=[uid])
-
-    #tags = relationship('tags', secondary = message_tag, back_populates="messages")
+    tags = relationship('Tag', secondary = message_tag)
 
 class Tag(DbModel, SerializerMixin):
     __tablename__ = 'tags'

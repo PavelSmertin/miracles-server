@@ -45,8 +45,6 @@ JWT_ALGORITHM = 'HS256'
 get_user_id = partial(crud.get_id, User, user_id=None)
 put_user = partial(crud.put, User, user_id=None, user_data=None)
 
-get_messages = partial(crud.get, Message, limit=None)
-post_message = partial(crud.post, Message, message=None)
 get_message_id = partial(crud.get_id, Message, message_id=None)
 put_message = partial(crud.put, Message, message_id=None, message_data=None)
 delete_message = partial(crud.delete, Message, message_id=None)
@@ -86,7 +84,7 @@ def get_user(user, token_info):
     users = crud.get(User, limit=100)
     return list(filter(lambda u: u.get('id') == user, users)) + list(filter(lambda u: u.get('id') != user, users))
 
-def cget_messages(user, token_info):  
+def get_messages(user, token_info):  
 
     last_mesasges = Session.query(Message.uid, func.max(Message.tms).label('last_tms')).group_by(Message.uid).subquery()
     query = Session.query(last_mesasges.c.uid, User, Message).\
@@ -108,10 +106,20 @@ def cget_messages(user, token_info):
 
     return items
 
+
 def create_message(user, token_info):
     request = connexion.request.get_json()
 
-    instance = Message(content=request.get('content'), uid =user)
+
+    instance = Message( content=request.get('content') )
+    user = Session.query(User).filter(User.id == user ).first()
+    instance.user = user
+
+    tag_ids = request.get('tag_ids')
+    if tag_ids is not None:
+        tags = Session.query(Tag).filter(Tag.id.in_(tag_ids)).all()
+        instance.tags = tags
+
     try:
         Session.add(instance)
         Session.commit()
@@ -121,7 +129,16 @@ def create_message(user, token_info):
         logging.debug('Exception:post_id:{}'.format(err))
     return NoContent, 400
 
-    #return crud.post(Message, message={'content': request.get('content'), 'uid': user})
+
+def get_tags(user, token_info):  
+    tags = Session.query(Tag).all()
+    items = []
+    for u in tags:
+        items.append({
+            'id': u.id,
+            'name': u.name, 
+        })
+    return items
 
 def authorize():
     return redirect(request_uri)
@@ -246,9 +263,6 @@ def _current_timestamp() -> int:
 
 
 
-
-
-
 app = connexion.App(__name__)
 app.add_api('openapi.yml')
 
@@ -288,8 +302,6 @@ def test_connect():
 @socketio.on('disconnect')
 def test_disconnect():
     print('Client disconnected')
-
-
 
 
 if __name__ == '__main__':

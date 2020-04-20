@@ -100,7 +100,7 @@ paths:
       tags:
       - message
       summary: Get all the messages
-      operationId: app.cget_messages
+      operationId: app.get_messages
       parameters:
       - name: limit
         in: query
@@ -333,6 +333,12 @@ components:
           type: number
           description: The temp of breath
           example: 10.0
+        tag_ids:
+          type: array
+          items:
+            type: integer
+          description: tags
+          example: [1, 2, 4]
     Tag:
       required:
       - name
