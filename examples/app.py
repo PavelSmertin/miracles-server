@@ -42,14 +42,12 @@ JWT_LIFETIME_SECONDS = 3600 * 24 * 365
 JWT_ALGORITHM = 'HS256'
 
 
-get_user_id = partial(crud.get_id, User, user_id=None)
-put_user = partial(crud.put, User, user_id=None, user_data=None)
+get_user_id     = partial(crud.get_id, User, user_id=None)
+put_user        = partial(crud.put, User, user_id=None, user_data=None)
 
-get_message_id = partial(crud.get_id, Message, message_id=None)
-put_message = partial(crud.put, Message, message_id=None, message_data=None)
-delete_message = partial(crud.delete, Message, message_id=None)
-
-get_tags = partial(crud.get, Tag, limit=None, name=None)
+get_message_id  = partial(crud.get_id, Message, message_id=None)
+put_message     = partial(crud.put, Message, message_id=None, message_data=None)
+delete_message  = partial(crud.delete, Message, message_id=None)
 
 
 client_id='187087565689839'
@@ -86,22 +84,34 @@ def get_user(user, token_info):
 
 def get_messages(user, token_info):  
 
-    last_mesasges = Session.query(Message.uid, func.max(Message.tms).label('last_tms')).group_by(Message.uid).subquery()
-    query = Session.query(last_mesasges.c.uid, User, Message).\
-        join(User, last_mesasges.c.uid == User.id).\
-        join(Message, last_mesasges.c.last_tms == Message.tms).\
-        order_by(last_mesasges.c.last_tms)
+    last_mesasges = Session.query(Message.uid, func.max(Message.tms).label('last_tms')).\
+        group_by(Message.uid).\
+        subquery()
+
+    tags_per_message = Session.query( Message.uid, Message.id, func.array_agg(Tag.name).label('tag_names') ).\
+        join(Tag, Message.tags).\
+        group_by(Message.uid, Message.id).\
+        subquery()
+
+    query = Session.query( last_mesasges.c.uid, tags_per_message.c.id, tags_per_message.c.tag_names, last_mesasges.c.last_tms, User.name, User.avatar, Message.content ).\
+        join( Message, last_mesasges.c.last_tms == Message.tms ).\
+        join( tags_per_message, Message.id == tags_per_message.c.id ).\
+        join( User, last_mesasges.c.uid == User.id ).\
+        order_by( last_mesasges.c.last_tms )
 
     items = []
 
     for u in query:
+        print(u)
+
         items.append({
-            'user_id': u.User.id,
-            'message_id': u.Message.id, 
-            'user_name': u.User.name,
-            'avatar': u.User.avatar,
-            'content': u.Message.content,
-            'tms': u.Message.tms,
+            'user_id': u.uid,
+            'message_id': u.id, 
+            'user_name': u.name,
+            'avatar': u.avatar,
+            'content': u.content,
+            'tms': u.last_tms,
+            'tag_names': u.tag_names,
         })
 
     return items
