@@ -95,6 +95,31 @@ paths:
       security:
       - jwt: []
 
+  /host:
+    get:
+      tags:
+      - message
+      summary: Get host messages
+      operationId: app.get_host
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          minimum: 0
+          type: integer
+          default: 100
+      responses:
+        200:
+          description: Return the messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+      security:
+      - jwt: []
+
   /message:
     get:
       tags:

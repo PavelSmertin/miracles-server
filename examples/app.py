@@ -23,7 +23,7 @@ from flask import request
 
 
 from connexion import NoContent
-from sqlalchemy import Column, Date, Integer, Text, create_engine, inspect
+from sqlalchemy import Column, Date, Integer, Text, create_engine, inspect, desc
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import func
 from datetime import datetime
@@ -102,8 +102,6 @@ def get_messages(user, token_info):
     items = []
 
     for u in query:
-        print(u)
-
         items.append({
             'user_id': u.uid,
             'message_id': u.id, 
@@ -111,6 +109,31 @@ def get_messages(user, token_info):
             'avatar': u.avatar,
             'content': u.content,
             'tms': u.last_tms,
+            'tag_names': u.tag_names,
+        })
+
+    return items
+
+def get_host(user, token_info):  
+
+    tags_per_message = Session.query( Message.uid, Message.id, func.array_agg(Tag.name).label('tag_names') ).\
+        join(Tag, Message.tags).\
+        group_by(Message.uid, Message.id).\
+        subquery()
+
+    query = Session.query( Message.id, Message.content, Message.tms, tags_per_message.c.tag_names ).\
+        join( tags_per_message, Message.id == tags_per_message.c.id ).\
+        filter(Message.uid == user ).\
+        order_by( desc(Message.tms) )
+
+    items = []
+
+    for u in query:
+        items.append({
+            'user_id': user,
+            'message_id': u.id, 
+            'content': u.content,
+            'tms': u.tms,
             'tag_names': u.tag_names,
         })
 
