@@ -191,8 +191,7 @@ def callback(code):
         result = User(
             social_id = social_id, 
             name = username, 
-            email = email, 
-            karma = 1.0
+            email = email
             )
         try:
             result.save()
