@@ -281,7 +281,7 @@ def spin(corner, velocity):
 
 @socketio.on('tap_down')
 def tap_down(x, y):
-    # jwt = decode_token(request.args.get('auth'))
+    jwt = decode_token(request.args.get('auth'))
     # user_id = jwt.get('sub')
     # emit('broadcast', {'data': {'user_id': user_id, 'position':{'x': x, 'y': y}}}, broadcast=True)
 
