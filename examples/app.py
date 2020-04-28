@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import os
 
 from functools import partial
@@ -8,7 +7,6 @@ import logging
 import connexion
 from connexion_sql_utils import crud
 
-
 from rauth import OAuth2Service
 import json
 import time
@@ -16,11 +14,9 @@ from werkzeug.exceptions import Unauthorized
 import jwt
 import six
 
-
 from flask import Flask, render_template, redirect
 from flask_socketio import SocketIO, emit
 from flask import request
-
 
 from connexion import NoContent
 from sqlalchemy import Column, Date, Integer, Text, create_engine, inspect, desc
@@ -143,7 +139,6 @@ def get_host(user, token_info):
 def create_message(user, token_info):
     request = connexion.request.get_json()
 
-
     instance = Message( content=request.get('content') )
     user = Session.query(User).filter(User.id == user ).first()
     instance.user = user
@@ -257,40 +252,6 @@ def decode_token(token):
 def _current_timestamp() -> int:
     return int(time.time())
 
-# @socketio.on('create')
-# def on_create(data):
-#     """Create a game lobby"""
-#     gm = game.Info(
-#         size=data['size'],
-#         teams=data['teams'],
-#         dictionary=data['dictionary'])
-#     room = gm.game_id
-#     ROOMS[room] = gm
-#     join_room(room)
-#     emit('join_room', {'room': room})
-
-
-# @socketio.on('join')
-# def on_join(data):
-#     """Join a game lobby"""
-#     # username = data['username']
-#     room = data['room']
-#     if room in ROOMS:
-#         # add player and rebroadcast game object
-#         # rooms[room].add_player(username)
-#         join_room(room)
-#         send(ROOMS[room].to_json(), room=room)
-#     else:
-#         emit('error', {'error': 'Unable to join room. Room does not exist.'})
-
-# @socketio.on('flip_card')
-# def on_flip_card(data):
-#     """flip card and rebroadcast game object"""
-#     room = data['room']
-#     card = data['card']
-#     ROOMS[room].flip_card(card)
-#     send(ROOMS[room].to_json(), room=room)
-
 
 
 
@@ -304,7 +265,6 @@ socketio = SocketIO(flask_app, logger=True)
 @app.route('/')
 def index():
     socketio.emit('broadcast', {'data': 'index'})
-
     return render_template('index.html')
 
 @socketio.on('tap_up')
@@ -321,15 +281,46 @@ def spin(corner, velocity):
 
 @socketio.on('tap_down')
 def tap_down(x, y):
-    print('tap')
     # jwt = decode_token(request.args.get('auth'))
     # user_id = jwt.get('sub')
     # emit('broadcast', {'data': {'user_id': user_id, 'position':{'x': x, 'y': y}}}, broadcast=True)
 
+
+
+@socketio.on('open_breathe')
+def on_open_breathe(data):
+    message_id = data['message_id']
+    join_room(message_id)
+    emit('open_breathe', {'message': message_id}, broadcast=True)
+
+@socketio.on('close_breathe')
+def on_close_breathe(data):
+    message_id = data['message_id']
+    join_room(message_id)
+    emit('close_breathe', {'message': message_id}, broadcast=True)
+
+@socketio.on('open_tsa')
+def on_open_tsa(data):
+    message_id = data['message_id']
+    jwt = decode_token(request.args.get('auth'))
+    user_id = jwt.get('sub')
+    join_room(message_id)
+    emit('open_tsa', { 'user_id': user_id}, room=message_id, broadcast=True)
+
+@socketio.on('close_tsa')
+def on_close_tsa(data):
+    message_id = data['message_id']
+    jwt = decode_token(request.args.get('auth'))
+    user_id = jwt.get('sub')
+    join_room(message_id)
+    emit('close_tsa', {'user_id': user_id}, room=message_id, broadcast=True)
+
+
 @socketio.on('connect')
 def test_connect():
-    print('Client connected')
-    emit('broadcast', {'data': 'Connected'})
+    jwt = decode_token(request.args.get('auth'))
+    user_id = jwt.get('sub')
+    emit('connect', {'data': {'user_id': user_id }}, broadcast=True)
 
 @socketio.on('disconnect')
 def test_disconnect():
