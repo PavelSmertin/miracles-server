@@ -93,7 +93,7 @@ def get_messages(user, token_info):
         join( Message, last_mesasges.c.last_tms == Message.tms ).\
         join( tags_per_message, Message.id == tags_per_message.c.id ).\
         join( User, last_mesasges.c.uid == User.id ).\
-        order_by( last_mesasges.c.last_tms )
+        order_by( desc(last_mesasges.c.last_tms) )
 
     items = []
 
