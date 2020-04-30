@@ -15,7 +15,7 @@ import jwt
 import six
 
 from flask import Flask, render_template, redirect
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask import request
 
 from connexion import NoContent
@@ -24,6 +24,12 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import func
 from datetime import datetime
 from models import ModelBase, Session, DbModel, DbModelClear, engine, User, Message, Tag, Visits, Socials
+
+import redis
+from datetime import datetime
+
+redis = redis.Redis(host='localhost', port=6379)
+
 
 
 logger = logging.getLogger(__name__)
@@ -122,15 +128,27 @@ def get_host(user, token_info):
         filter(Message.uid == user ).\
         order_by( desc(Message.tms) )
 
-    items = []
+    one_minute = 60
+    ago = _current_timestamp() - one_minute
 
+    items = []
+    i = 0
     for u in query:
+
+        user_ids = None
+
+        if i == 0:
+            latest_users = redis.zrevrangebyscore(str(u.id), '+inf', ago)
+            user_ids = [int(x) for x in latest_users]
+            ++i
+
         items.append({
             'user_id': user,
             'message_id': u.id, 
             'content': u.content,
             'tms': u.tms,
             'tag_names': u.tag_names,
+            'latest_users' : user_ids
         })
 
     return items
@@ -255,7 +273,6 @@ def _current_timestamp() -> int:
 
 
 
-
 app = connexion.App(__name__)
 app.add_api('openapi.yml')
 
@@ -267,23 +284,25 @@ def index():
     socketio.emit('broadcast', {'data': 'index'})
     return render_template('index.html')
 
-@socketio.on('tap_up')
-def tap_up(x, y):
-    jwt = decode_token(request.args.get('auth'))
-    user_id = jwt.get('sub')
-    emit('broadcast', {'data': {'user_id': user_id, 'position':{'x': x, 'y': y}}}, broadcast=True)
-
 @socketio.on('spin')
 def spin(corner, velocity):
     jwt = decode_token(request.args.get('auth'))
     user_id = jwt.get('sub')
     emit('spincast', {'data': {'user_id': user_id, 'position':{'corner': corner, 'velocity': velocity}}}, broadcast=True)
 
-@socketio.on('tap_down')
-def tap_down(x, y):
+
+@socketio.on('tap_up')
+def tap_up(x, y):
     jwt = decode_token(request.args.get('auth'))
-    # user_id = jwt.get('sub')
-    # emit('broadcast', {'data': {'user_id': user_id, 'position':{'x': x, 'y': y}}}, broadcast=True)
+    user_id = jwt.get('sub')
+    emit('broadcast', {'data': {'user_id': user_id, 'position':{'x': x, 'y': y}}}, broadcast=True)
+
+@socketio.on('tap_down')
+def tap_down(message_id, x, y):
+    jwt = decode_token(request.args.get('auth'))
+    user_id = jwt.get('sub')
+    join_to_message(message_id, user_id)
+    emit('broadcast', {'data': {'user_id': user_id, 'message_id': user_id, 'position':{'x': x, 'y': y}}}, broadcast=True)
 
 
 
@@ -303,9 +322,10 @@ def on_close_breathe(data):
 def on_open_tsa(data):
     message_id = data['message_id']
     jwt = decode_token(request.args.get('auth'))
+    # TODO Создать визит (Сохранить в базе). Visits
     user_id = jwt.get('sub')
-    join_room(message_id)
-    emit('open_tsa', { 'user_id': user_id}, room=message_id, broadcast=True)
+    join_to_message(message_id, user_id)
+    emit('open_tsa', { 'user_id': user_id, 'message_id': user_id }, broadcast=True)
 
 @socketio.on('close_tsa')
 def on_close_tsa(data):
@@ -313,18 +333,31 @@ def on_close_tsa(data):
     jwt = decode_token(request.args.get('auth'))
     user_id = jwt.get('sub')
     join_room(message_id)
-    emit('close_tsa', {'user_id': user_id}, room=message_id, broadcast=True)
+    leave_from_message(message_id, user_id)
+    emit('close_tsa', { 'user_id': user_id, 'message_id': user_id }, room=message_id, broadcast=True)
 
 
 @socketio.on('connect')
-def test_connect():
+def on_connect():
     jwt = decode_token(request.args.get('auth'))
     user_id = jwt.get('sub')
     emit('connect', {'data': {'user_id': user_id }}, broadcast=True)
 
 @socketio.on('disconnect')
-def test_disconnect():
+def on_disconnect():
     print('Client disconnected')
+
+
+def join_to_message(message_id, user_id):
+    current_time = _current_timestamp()
+    redis.zadd(str(message_id), {user_id: _current_timestamp()})
+    # mmm = 60 * 1000
+    # ago = _current_timestamp() - mmm
+    # print(redis.zrevrangebyscore('online', '+inf', ago))
+
+def leave_from_message(message_id, user_id):
+    current_time = _current_timestamp()
+    redis.zrem(str(message_id), user_id)
 
 
 if __name__ == '__main__':

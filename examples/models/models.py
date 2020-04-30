@@ -70,12 +70,6 @@ class Tag(DbModel, SerializerMixin):
     #messages = relationship('messages', secondary = message_tag, back_populates="tags")
 
 
-
-# class MessageTag(DbModel):
-#     __tablename__ = 'messagetag'
-#     message_id = Column(Integer, ForeignKey('messages.id'), primary_key=True)
-#     tag_id = Column(Integer, ForeignKey('tags.id'), primary_key=True)
-
 class Visits(DbModel, SerializerMixin):
     __tablename__ = 'visits'
     id = Column(Integer, primary_key=True)
