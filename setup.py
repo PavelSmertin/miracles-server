@@ -20,6 +20,7 @@ requirements = [
     'rauth',
     'pyjwt',
     'flask-socketio',
+    'redis',
     'eventlet',
     'six'
 ]
