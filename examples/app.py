@@ -28,7 +28,7 @@ from models import ModelBase, Session, DbModel, DbModelClear, engine, User, Mess
 import redis
 from datetime import datetime
 
-redis = redis.Redis(host='localhost', port=6379)
+redis = redis.Redis(host='redis', port=6379)
 
 
 
