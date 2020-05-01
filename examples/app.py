@@ -101,9 +101,19 @@ def get_messages(user, token_info):
         join( User, last_mesasges.c.uid == User.id ).\
         order_by( desc(last_mesasges.c.last_tms) )
 
-    items = []
 
+    one_minute = 60
+    ago = _current_timestamp() - one_minute
+
+    items = []
+    i = 0
     for u in query:
+        user_ids = None
+
+        if i == 0:
+            latest_users = redis.zrevrangebyscore(str(u.id), '+inf', ago)
+            user_ids = [int(x) for x in latest_users]
+            ++i
         items.append({
             'user_id': u.uid,
             'message_id': u.id, 
@@ -112,6 +122,7 @@ def get_messages(user, token_info):
             'content': u.content,
             'tms': u.last_tms,
             'tag_names': u.tag_names,
+            'latest_users' : user_ids,
         })
 
     return items
@@ -292,17 +303,17 @@ def spin(corner, velocity):
 
 
 @socketio.on('tap_up')
-def tap_up(x, y):
+def tap_up(message_id, x, y):
     jwt = decode_token(request.args.get('auth'))
     user_id = jwt.get('sub')
-    emit('broadcast', {'data': {'user_id': user_id, 'position':{'x': x, 'y': y}}}, broadcast=True)
+    emit('broadcast', {'data': {'user_id': user_id, 'message_id': message_id, 'position':{'x': x, 'y': y}}}, broadcast=True)
 
 @socketio.on('tap_down')
 def tap_down(message_id, x, y):
     jwt = decode_token(request.args.get('auth'))
     user_id = jwt.get('sub')
-    join_to_message(message_id, user_id)
-    emit('broadcast', {'data': {'user_id': user_id, 'message_id': user_id, 'position':{'x': x, 'y': y}}}, broadcast=True)
+    # join_to_message(message_id, user_id)
+    emit('broadcast', {'data': {'user_id': user_id, 'message_id': message_id, 'position':{'x': x, 'y': y}}}, broadcast=True)
 
 
 
