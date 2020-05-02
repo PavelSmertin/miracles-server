@@ -12,7 +12,7 @@ services:
     image: "redis:alpine"
     ports:
       - 127.0.0.1:6379:6379
-    workdir: /var/lib/redis
+    working_dir: /var/lib/redis
   api:
     depends_on:
       - db_miracle
