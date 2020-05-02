@@ -119,8 +119,8 @@ def get_messages(user, token_info):
             'tms': u.last_tms,
             'tag_names': u.tag_names,
             'latest_users' : user_ids,
-            'views': views,
-            'active_now': active_now,
+            'views': int(views),
+            'active_now': int(active_now.length),
         })
 
     return items
@@ -161,8 +161,8 @@ def get_host(user, token_info):
             'tms': u.tms,
             'tag_names': u.tag_names,
             'latest_users' : user_ids,
-            'views': views,
-            'active_now': active_now,
+            'views': int(views),
+            'active_now': int(active_now.length),
         })
 
     return items
