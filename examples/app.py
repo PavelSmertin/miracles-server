@@ -151,7 +151,7 @@ def get_host(user, token_info):
             user_ids = [int(x) for x in latest_users]
             ++i
 
-        views = redis.zlexcount(str(u.id), '-inf', '+inf')
+        views = redis.zcount(str(u.id), '-inf', '+inf')
         active_now = redis.zrevrangebyscore(str(u.id), '+inf', ago)
 
         items.append({
