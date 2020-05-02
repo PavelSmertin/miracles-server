@@ -108,7 +108,7 @@ def get_messages(user, token_info):
     items = []
     for u in query:
         user_ids = None
-        views = redis.zlexcount(str(u.id), '-inf', '+inf')
+        views = redis.zcount(str(u.id), '-inf', '+inf')
         active_now = redis.zrevrangebyscore(str(u.id), '+inf', ago)
         items.append({
             'user_id': u.uid,
