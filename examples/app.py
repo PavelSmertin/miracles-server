@@ -235,7 +235,8 @@ def callback(code):
         'avatar': picture_url, 
         'facebook_authorization_code': code,
         'facebook_access_token': access_token,
-        'auth_token': auth_token
+        'auth_token': auth_token,
+        'name': username, 
     })
 
     #user_count = len(crud.get(User, limit=None, email=None))
@@ -255,9 +256,9 @@ def get_payload(code):
     picture_url = 'https://graph.facebook.com/'+ me['id'] +'/picture?width=320'
 
     if (not me.get('first_name') and not me.get('last_name')):
-        name = me.get('first_name') + ' ' + me.get('last_name') 
-    else: 
         name = me.get('email').split('@')[0]
+    else: 
+        name = me.get('first_name') + ' ' + me.get('last_name') 
 
     return (
         'facebook$' + me['id'],
