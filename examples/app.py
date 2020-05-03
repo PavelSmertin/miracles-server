@@ -251,12 +251,17 @@ def get_payload(code):
               'redirect_uri': redirect_uri},
         decoder=decode_json
     )
-    me = oauth_session.get('me?fields=id,email,picture.width(320)').json()
+    me = oauth_session.get('me?fields=id,email,first_name,last_name,picture.width(320)').json()
     picture_url = 'https://graph.facebook.com/'+ me['id'] +'/picture?width=320'
+
+    if (not me.get('first_name') and not me.get('last_name')):
+        name = me.get('first_name') + ' ' + me.get('last_name') 
+    else: 
+        name = me.get('email').split('@')[0]
 
     return (
         'facebook$' + me['id'],
-        me.get('email').split('@')[0],  # Facebook does not provide username, so the email's user is used instead
+        name,  # Facebook does not provide username, so the email's user is used instead
         me.get('email'),
         picture_url,
         oauth_session.access_token
