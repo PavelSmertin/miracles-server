@@ -26,7 +26,6 @@ from datetime import datetime
 from models import ModelBase, Session, DbModel, DbModelClear, engine, User, Message, Tag, Visits, Socials
 
 import redis
-from datetime import datetime
 
 redis = redis.Redis(host='redis', port=6379)
 
@@ -169,9 +168,6 @@ def get_host(user, token_info):
 
 
 def get_guest_room(user, token_info, message_id):  
-
-    # request = connexion.request.get_json()
-    # tag_ids = request.get('tag_ids')
 
     one_minute = 60
     ago = _current_timestamp() - one_minute
@@ -361,12 +357,13 @@ def on_open_breathe(message_id, inhale, pause_inhale, exhale, pause_exhale):
     
     # postgres storage
     crud.put(Message, id=message_id, message={
-        'last_active_tms': _current_timestamp(),
+        'last_active_tms': datetime.now(),
         'inhale' : inhale, 
         'pause_inhale': pause_inhale, 
         'exhale': exhale, 
         'pause_exhale': pause_exhale
     })
+
 
     emit('open_breathe', 
         {'data': 
