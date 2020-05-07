@@ -96,7 +96,7 @@ def get_messages(user, token_info):
         subquery()
 
     query = Session.query( last_mesasges.c.uid, tags_per_message.c.id, tags_per_message.c.tag_names, last_mesasges.c.last_tms, User.name, User.avatar, Message.content ).\
-        join( Message, last_mesasges.c.last_tms == Message.tms ).\
+        join( Message, last_mesasges.c.last_tms == Message.last_active_tms ).\
         join( tags_per_message, Message.id == tags_per_message.c.id ).\
         join( User, last_mesasges.c.uid == User.id ).\
         order_by( desc(last_mesasges.c.last_tms) )
