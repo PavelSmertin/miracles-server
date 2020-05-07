@@ -86,7 +86,7 @@ def get_user(user, token_info):
 
 def get_messages(user, token_info):  
 
-    last_mesasges = Session.query(Message.uid, func.max(Message.tms).label('last_tms')).\
+    last_mesasges = Session.query(Message.uid, func.max(Message.last_active_tms).label('last_tms')).\
         group_by(Message.uid).\
         subquery()
 
@@ -132,10 +132,10 @@ def get_host(user, token_info):
         group_by(Message.uid, Message.id).\
         subquery()
 
-    query = Session.query( Message.id, Message.content, Message.tms, tags_per_message.c.tag_names ).\
+    query = Session.query( Message.id, Message.content, Message.last_active_tms, tags_per_message.c.tag_names ).\
         join( tags_per_message, Message.id == tags_per_message.c.id ).\
         filter(Message.uid == user ).\
-        order_by( desc(Message.tms) )
+        order_by( desc(Message.last_active_tms) )
 
     one_minute = 60
     ago = _current_timestamp() - one_minute
@@ -158,7 +158,7 @@ def get_host(user, token_info):
             'user_id': user,
             'message_id': u.id, 
             'content': u.content,
-            'tms': u.tms,
+            'tms': u.last_active_tms,
             'tag_names': u.tag_names,
             'latest_users' : user_ids,
             'views': int(views),
@@ -166,6 +166,32 @@ def get_host(user, token_info):
         })
 
     return items
+
+
+def get_guest_room(user, token_info, message_id):  
+
+    # request = connexion.request.get_json()
+    # tag_ids = request.get('tag_ids')
+
+    one_minute = 60
+    ago = _current_timestamp() - one_minute
+    latest_users = redis.zrevrangebyscore(message_id, '+inf', ago)
+    active_ids = [int(x) for x in latest_users]
+
+    message = Session.query(Message).filter(Message.id == message_id ).first()
+
+    if(message is None):
+        return {'error': 'message not found'}
+    
+    return {
+            'active_ids': active_ids,
+            'message_id': message.id, 
+            'inhale' : message.inhale, 
+            'pause_inhale': message.pause_inhale, 
+            'exhale': message.exhale, 
+            'pause_exhale': message.pause_exhale
+        }
+
 
 
 def create_message(user, token_info):
@@ -262,7 +288,7 @@ def get_payload(code):
 
     return (
         'facebook$' + me['id'],
-        name,  # Facebook does not provide username, so the email's user is used instead
+        name.strip(),
         me.get('email'),
         picture_url,
         oauth_session.access_token
@@ -321,16 +347,41 @@ def tap_up(message_id, x, y):
 def tap_down(message_id, x, y):
     jwt = decode_token(request.args.get('auth'))
     user_id = jwt.get('sub')
+
+    # redis storage
     join_to_message(message_id, user_id)
+
     emit('broadcast', {'data': {'user_id': user_id, 'message_id': message_id, 'position':{'x': x, 'y': y}}}, broadcast=True)
 
 
-
 @socketio.on('open_breathe')
-def on_open_breathe(data):
-    message_id = data['message_id']
-    join_room(message_id)
-    emit('open_breathe', {'message': message_id}, broadcast=True)
+def on_open_breathe(message_id, inhale, pause_inhale, exhale, pause_exhale):
+    jwt = decode_token(request.args.get('auth'))
+    user_id = jwt.get('sub')
+    
+    # postgres storage
+    crud.put(Message, id=message_id, message={
+        'last_active_tms': _current_timestamp(),
+        'inhale' : inhale, 
+        'pause_inhale': pause_inhale, 
+        'exhale': exhale, 
+        'pause_exhale': pause_exhale
+    })
+
+    emit('open_breathe', 
+        {'data': 
+            {'message': message_id, 
+                'breathing': {
+                    'inhale' : inhale, 
+                    'pause_inhale': pause_inhale, 
+                    'exhale': exhale, 
+                    'pause_exhale': pause_exhale
+                }
+            }
+        }, broadcast=True)
+
+
+
 
 @socketio.on('close_breathe')
 def on_close_breathe(data):
@@ -371,6 +422,7 @@ def on_disconnect():
 def join_to_message(message_id, user_id):
     current_time = _current_timestamp()
     redis.zadd(str(message_id), {user_id: _current_timestamp()})
+
     # mmm = 60 * 1000
     # ago = _current_timestamp() - mmm
     # print(redis.zrevrangebyscore('online', '+inf', ago))

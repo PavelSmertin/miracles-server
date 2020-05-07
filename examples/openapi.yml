@@ -173,7 +173,7 @@ paths:
       tags:
       - Message
       summary: Get a single message
-      operationId: app.get_message_id
+      operationId: app.get_guest_room
       parameters:
       - name: message_id
         in: path

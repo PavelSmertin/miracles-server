@@ -59,6 +59,11 @@ class Message(DbModel, SerializerMixin):
     temp = Column(Numeric, nullable=True)
     visitors = Column(ARRAY(Integer))
     tms = Column(DateTime, index=True, default=datetime.utcnow)
+    last_active_tms = Column(DateTime, index=True, default=datetime.utcnow)
+    inhale = Column(Integer)
+    pause_inhale = Column(Integer)
+    exhale = Column(Integer)
+    pause_exhale = Column(Integer)
 
     user = relationship("User", foreign_keys=[uid])
     tags = relationship('Tag', secondary = message_tag)
