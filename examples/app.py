@@ -349,6 +349,16 @@ def tap_down(message_id, x, y):
 
     emit('broadcast', {'data': {'user_id': user_id, 'message_id': message_id, 'position':{'x': x, 'y': y}}}, broadcast=True)
 
+@socketio.on('bubble')
+def bubble(message_id, old, new):
+    jwt = decode_token(request.args.get('auth'))
+    user_id = jwt.get('sub')
+
+    # redis storage
+    join_to_message(message_id, user_id)
+
+    emit('broadcast', {'data': {'user_id': user_id, 'message_id': message_id, 'position':{'x': old['x'], 'y': old['y']}, 'new_position':{'x': new['x'], 'y': new['y']} }}, broadcast=True)
+
 
 @socketio.on('open_breathe')
 def on_open_breathe(message_id, inhale, pause_inhale, exhale, pause_exhale):
